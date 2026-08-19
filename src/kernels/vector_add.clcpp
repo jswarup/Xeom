@@ -1,0 +1,45 @@
+// vector_add.clcpp -----------------------------------------------------------------------------------------------
+// clc++2021 SPIR-V kernel — compiled with: clang -cl-std=clc++2021 -target spirv64
+
+//-----------------------------------------------------------------------------------------------------------------
+
+#include "common_types.h"
+
+using namespace xeom::common;
+
+//-----------------------------------------------------------------------------------------------------------------
+
+template < typename T>
+struct VectorOp
+{
+    static T compute( T x, T y, VectorOpType op, float s)
+    {
+        switch ( op) {
+            case VectorOpType::Add:
+                return x + y;
+            case VectorOpType::Subtract:
+                return x - y;
+            case VectorOpType::Multiply:
+                return x * y;
+            case VectorOpType::FMA:
+                return ( x * y) + s;
+            default:
+                return x + y;
+        }
+    }
+};
+
+//-----------------------------------------------------------------------------------------------------------------
+
+kernel void vector_add_clcxx(
+    global const float *a,
+    global const float *b,
+    global float *c,
+    const VectorParams params
+)
+{
+    const size_t gid = get_global_id( 0);
+    if ( gid < params.count) {
+        c[gid] = VectorOp< float>::compute( a[gid], b[gid], params.op_type, params.scalar_factor);
+    }
+}

@@ -1,0 +1,125 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "binaryDir": "${sourceDir}/../../out/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "clang-ninja-debug",
+      "displayName": "Clang 20 (Ninja Debug)",
+      "description": "Build with Clang++ 20 and Ninja in Debug mode",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang++.exe",
+        "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang.exe"
+      }
+    },
+    {
+      "name": "clang-ninja-release",
+      "displayName": "Clang 20 (Ninja Release)",
+      "description": "Build with Clang++ 20 and Ninja in Release mode",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang++.exe",
+        "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang.exe"
+      }
+    },
+    {
+      "name": "clang-cl-debug",
+      "displayName": "Clang-CL 20 (Ninja Debug)",
+      "description": "Build with Clang-CL 20 and Ninja in Debug mode",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+        "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe"
+      }
+    },
+    {
+      "name": "clang-cl-release",
+      "displayName": "Clang-CL 20 (Ninja Release)",
+      "description": "Build with Clang-CL 20 and Ninja in Release mode",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe",
+        "CMAKE_C_COMPILER": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/Llvm/x64/bin/clang-cl.exe"
+      }
+    },
+    {
+      "name": "vs2026-clang",
+      "displayName": "Visual Studio 2026 (ClangCL)",
+      "description": "Visual Studio 2026 Solution using LLVM Clang-CL toolset",
+      "generator": "Visual Studio 18 2026",
+      "toolset": "ClangCL",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/../../out/vs2026-clang"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "clang-ninja-debug",
+      "configurePreset": "clang-ninja-debug"
+    },
+    {
+      "name": "clang-ninja-release",
+      "configurePreset": "clang-ninja-release"
+    },
+    {
+      "name": "clang-cl-debug",
+      "configurePreset": "clang-cl-debug"
+    },
+    {
+      "name": "clang-cl-release",
+      "configurePreset": "clang-cl-release"
+    },
+    {
+      "name": "vs2026-clang-release",
+      "configurePreset": "vs2026-clang",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "clang-ninja-debug",
+      "configurePreset": "clang-ninja-debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "clang-ninja-release",
+      "configurePreset": "clang-ninja-release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "clang-cl-debug",
+      "configurePreset": "clang-cl-debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "clang-cl-release",
+      "configurePreset": "clang-cl-release",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

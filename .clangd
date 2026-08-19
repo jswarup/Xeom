@@ -1,0 +1,6 @@
+CompileFlags:
+  CompilationDatabase: out/clang-ninja-release
+  Add:
+    - -std=c++20
+    - -Isrc
+    - -Ithirdpty
