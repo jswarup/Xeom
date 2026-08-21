@@ -1,6 +1,6 @@
 // traits_tests.cpp --------------------------------------------------------------------------------------------------
 #include "cove/xeom.h"
-#include "jeeves/jeeves.h"
+#include "cove/jeeves.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 // C++20 Concepts — precise compile-time diagnostics for Trait compliance

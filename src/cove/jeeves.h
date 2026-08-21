@@ -2,7 +2,7 @@
 // Jeeves — Xeom's lightweight, self-registering unit test framework.
 //
 // Usage:
-//   #include "jeeves/jeeves.h"
+//   #include "cove/jeeves.h"
 //
 //   JEEVES_TEST( "MyModule: something works")
 //   {
@@ -17,7 +17,7 @@
 #pragma once
 
 #include "cove/includes.h"
-#include "jeeves/logger.h"
+#include "cove/logger.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 

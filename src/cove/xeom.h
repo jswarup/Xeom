@@ -4,7 +4,7 @@
 #include "cove/typeincl.h"
 #include "compute.h"
 #include "swarm/gpu.h"
-#include "jeeves/logger.h"
+#include "cove/logger.h"
 #include "silo/seg.h"
 #include "silo/traits.h"
 #include "silo/access.h"

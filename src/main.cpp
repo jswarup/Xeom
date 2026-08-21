@@ -1,6 +1,6 @@
 // main.cpp -------------------------------------------------------------------------------------------------------
 #include "cove/xeom.h"
-#include "jeeves/jeeves.h"
+#include "cove/jeeves.h"
 
 #include <cstdlib>
 
