@@ -1,7 +1,7 @@
 // compute.h ------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "common_types.h"
+#include "cove/typeincl.h"
 #include "silo/seg.h"
 #include "silo/arr.h"
 

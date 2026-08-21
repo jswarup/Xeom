@@ -1,7 +1,7 @@
 // stk.h -----------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "common_types.h"
+#include "cove/typeincl.h"
 #include "arr.h"
 #include "seg.h"
 #include "../stalks/atm.h"

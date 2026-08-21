@@ -64,7 +64,7 @@ set(OPENCL_LIB "${XEOM_ROOT}/thirdpty/lib/OpenCL.lib")
 # -----------------------------------------------------------------------------
 # SPIR-V Offline Compilation: vector_add.clcpp -> vector_add_spv.hpp
 # -----------------------------------------------------------------------------
-set(KERNEL_SOURCE "${XEOM_ROOT}/src/kernels/vector_add.clcpp")
+set(KERNEL_SOURCE "${XEOM_ROOT}/src/swarm/kernels/vector_add.clcpp")
 set(SPV_OUTPUT    "${CMAKE_BINARY_DIR}/generated/vector_add.spv")
 set(SPV_HEADER    "${CMAKE_BINARY_DIR}/generated/vector_add_spv.hpp")
 
@@ -82,7 +82,7 @@ add_custom_command(
         -DSPV_OUTPUT=${SPV_OUTPUT}
         -DHEADER_OUTPUT=${SPV_HEADER}
         -P "${CMAKE_CURRENT_LIST_DIR}/spirv_embed.cmake"
-    DEPENDS "${KERNEL_SOURCE}" "${XEOM_ROOT}/src/common_types.h" "${CMAKE_CURRENT_LIST_DIR}/spirv_embed.cmake"
+    DEPENDS "${KERNEL_SOURCE}" "${XEOM_ROOT}/src/cove/typeincl.h" "${CMAKE_CURRENT_LIST_DIR}/spirv_embed.cmake"
     COMMENT "Compiling C++ for OpenCL 2021 kernel to SPIR-V and embedding bytecode"
     VERBATIM
 )
@@ -131,18 +131,27 @@ function(xeom_set_compile_options target)
 endfunction()
 
 # -----------------------------------------------------------------------------
+# Jeeves: Per-folder unit tests, linked into `xeom` and run via `xeom --test [filter]`
+# -----------------------------------------------------------------------------
+option(XEOM_TESTS "Compile Jeeves unit tests found alongside source (src/**/tests/*.cpp) into xeom" ON)
+
+set(XEOM_JEEVES_TEST_SOURCES "")
+if (XEOM_TESTS)
+    file(GLOB_RECURSE XEOM_JEEVES_TEST_SOURCES CONFIGURE_DEPENDS
+        "${XEOM_ROOT}/src/*/tests/*.cpp"
+        "${XEOM_ROOT}/src/tests/*.cpp"
+    )
+    message(STATUS "Jeeves Unit Tests   : ENABLED (${XEOM_JEEVES_TEST_SOURCES})")
+else()
+    message(STATUS "Jeeves Unit Tests   : DISABLED")
+endif()
+
+# -----------------------------------------------------------------------------
 # Executable: xeom
 # -----------------------------------------------------------------------------
-add_executable(xeom "${XEOM_ROOT}/src/main.cpp")
+add_executable(xeom "${XEOM_ROOT}/src/main.cpp" ${XEOM_JEEVES_TEST_SOURCES})
 target_link_libraries(xeom PRIVATE xeom_core)
 xeom_set_compile_options(xeom)
-
-# -----------------------------------------------------------------------------
-# Testing: xeom_tests
-# -----------------------------------------------------------------------------
-enable_testing()
-add_executable(xeom_tests "${XEOM_ROOT}/tests/test_main.cpp")
-target_link_libraries(xeom_tests PRIVATE xeom_core)
-xeom_set_compile_options(xeom_tests)
-
-add_test(NAME CoreTests COMMAND xeom_tests)
+if (XEOM_TESTS)
+    target_compile_definitions(xeom PRIVATE XEOM_TESTS_ENABLED)
+endif()

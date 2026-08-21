@@ -1,7 +1,7 @@
 // choretree.h ------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "../common_types.h"
+#include "cove/typeincl.h"
 #include "../silo/stash.h"
 #include "../stalks/node.h"
 #include "../stalks/work.h"

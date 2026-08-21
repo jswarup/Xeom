@@ -1,7 +1,7 @@
 // atelier.h --------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "../common_types.h"
+#include "cove/typeincl.h"
 #include "maestro.h"
 #include "choretree.h"
 #include "../silo/buff.h"

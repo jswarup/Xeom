@@ -1,10 +1,10 @@
 // xeom.h ---------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "common_types.h"
+#include "cove/typeincl.h"
 #include "compute.h"
-#include "gpu.h"
-#include "logger.h"
+#include "swarm/gpu.h"
+#include "jeeves/logger.h"
 #include "silo/seg.h"
 #include "silo/traits.h"
 #include "silo/access.h"

@@ -3,8 +3,8 @@
 
 #define CL_TARGET_OPENCL_VERSION 300
 #include "CL/cl.h"
-#include "common_types.h"
-#include "logger.h"
+#include "cove/typeincl.h"
+#include "jeeves/logger.h"
 #include "vector_add_spv.hpp"
 
 //-----------------------------------------------------------------------------------------------------------------

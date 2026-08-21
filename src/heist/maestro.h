@@ -1,7 +1,7 @@
 // maestro.h --------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "../common_types.h"
+#include "cove/typeincl.h"
 #include "../silo/buff.h"
 #include "../silo/stash.h"
 #include "../stalks/atm.h"

@@ -6,12 +6,7 @@ echo   Xeom Build Engine - Clang 20+ / CMake Toolchain
 echo ===================================================================
 
 :: Resolve directory paths
-pushd "%~dp0"
-set "TOOLS_BUILD_DIR=%CD%"
-cd ..
-cd ..
-set "PROJ_DIR=%CD%"
-popd
+call "%~dp0_paths.bat"
 
 :: Default configurations
 set BUILD_TYPE=Release
@@ -132,6 +127,6 @@ echo [INFO] Executable available at: %BUILD_DIR%\bin\xeom.exe
 
 if "%DO_TEST%"=="1" (
     echo.
-    echo [INFO] Running test suite...
-    ctest --test-dir "%BUILD_DIR%" --output-on-failure
+    echo [INFO] Running Jeeves test suite...
+    "%BUILD_DIR%\bin\xeom.exe" --test
 )

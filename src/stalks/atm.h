@@ -1,7 +1,7 @@
 // atm.h -----------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "../common_types.h"
+#include "cove/typeincl.h"
 #include <atomic>
 #include <thread>
 

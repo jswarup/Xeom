@@ -1,7 +1,7 @@
 // stash.h ---------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "common_types.h"
+#include "cove/typeincl.h"
 #include "buff.h"
 #include "stk.h"
 #include "../stalks/atm.h"

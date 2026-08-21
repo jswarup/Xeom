@@ -1,7 +1,7 @@
 // arr.h -----------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "common_types.h"
+#include "cove/typeincl.h"
 #include "seg.h"
 #include "access.h"
 #include "traits.h"

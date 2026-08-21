@@ -1,5 +1,6 @@
 // main.cpp -------------------------------------------------------------------------------------------------------
-#include "xeom.h"
+#include "cove/xeom.h"
+#include "jeeves/jeeves.h"
 
 #include <cstdlib>
 
@@ -112,7 +113,15 @@ int main( int argc, char *argv[]) noexcept
 
         for ( int i = 1; i < argc; ++i) {
             const std::string_view arg = argv[i];
-            if ( arg == "--size" && i + 1 < argc) {
+            if ( arg == "--test") {
+#if defined( XEOM_TESTS_ENABLED)
+                const std::string_view filter = ( i + 1 < argc) ? std::string_view( argv[i + 1]) : std::string_view{};
+                return xeom::jeeves::run( filter) == 0 ? 0 : 1;
+#else
+                xeom::Logger::error( "Xeom was built with XEOM_TESTS=OFF; no tests are linked in.");
+                return 1;
+#endif
+            } else if ( arg == "--size" && i + 1 < argc) {
                 vec_sz = static_cast< size_t>( std::strtoll( argv[++i], nullptr, 10));
             } else if ( arg == "--iter" && i + 1 < argc) {
                 iters = static_cast< size_t>( std::strtoll( argv[++i], nullptr, 10));
@@ -121,7 +130,7 @@ int main( int argc, char *argv[]) noexcept
             } else if ( arg == "--gpu-only") {
                 run_cpu = false;
             } else if ( arg == "--help" || arg == "-h") {
-                xeom::Logger::info( "Usage: xeom [--size <N>] [--iter <N>] [--cpu-only] [--gpu-only]");
+                xeom::Logger::info( "Usage: xeom [--test [filter]] [--size <N>] [--iter <N>] [--cpu-only] [--gpu-only]");
                 return 0;
             }
         }
