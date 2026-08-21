@@ -2,9 +2,9 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "../silo/stash.h"
-#include "../stalks/node.h"
-#include "../stalks/work.h"
+#include "silo/stash.h"
+#include "stalks/node.h"
+#include "stalks/work.h"
 #include <concepts>
 
 //-----------------------------------------------------------------------------------------------------------------

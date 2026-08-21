@@ -2,12 +2,12 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "maestro.h"
-#include "choretree.h"
-#include "../silo/buff.h"
-#include "../silo/stash.h"
-#include "../stalks/atm.h"
-#include "../stalks/work.h"
+#include "heist/maestro.h"
+#include "heist/choretree.h"
+#include "silo/buff.h"
+#include "silo/stash.h"
+#include "stalks/atm.h"
+#include "stalks/work.h"
 #include <iostream>
 #include <thread>
 #include <vector>

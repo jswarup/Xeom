@@ -2,9 +2,9 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "arr.h"
-#include "seg.h"
-#include "../stalks/atm.h"
+#include "silo/arr.h"
+#include "silo/seg.h"
+#include "stalks/atm.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 

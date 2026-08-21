@@ -1,8 +1,8 @@
 // heist.h ----------------------------------------------------------------------------------------------------------
 #pragma once
 
-#include "choretree.h"
-#include "maestro.h"
-#include "atelier.h"
+#include "heist/choretree.h"
+#include "heist/maestro.h"
+#include "heist/atelier.h"
 
 //-----------------------------------------------------------------------------------------------------------------

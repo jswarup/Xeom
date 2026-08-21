@@ -2,9 +2,9 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "buff.h"
-#include "stk.h"
-#include "../stalks/atm.h"
+#include "silo/buff.h"
+#include "silo/stk.h"
+#include "stalks/atm.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 

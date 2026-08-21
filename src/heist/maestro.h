@@ -2,10 +2,10 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "../silo/buff.h"
-#include "../silo/stash.h"
-#include "../stalks/atm.h"
-#include "../stalks/work.h"
+#include "silo/buff.h"
+#include "silo/stash.h"
+#include "stalks/atm.h"
+#include "stalks/work.h"
 #include <cassert>
 
 //-----------------------------------------------------------------------------------------------------------------

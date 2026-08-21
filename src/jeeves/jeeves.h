@@ -17,7 +17,7 @@
 #pragma once
 
 #include "cove/includes.h"
-#include "logger.h"
+#include "jeeves/logger.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 

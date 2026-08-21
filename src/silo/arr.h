@@ -2,9 +2,9 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "seg.h"
-#include "access.h"
-#include "traits.h"
+#include "silo/seg.h"
+#include "silo/access.h"
+#include "silo/traits.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 

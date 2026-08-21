@@ -2,8 +2,8 @@
 #pragma once
 
 #include "cove/typeincl.h"
-#include "seg.h"
-#include "traits.h"
+#include "silo/seg.h"
+#include "silo/traits.h"
 
 //-----------------------------------------------------------------------------------------------------------------
 
