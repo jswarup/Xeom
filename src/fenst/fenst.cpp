@@ -9,13 +9,10 @@ namespace xeom::fenst {
 
 int run_gui( int argc, char *argv[])
 {
-    // Instead of using wxIMPLEMENT_APP which hijacks main(), we manually initialize
-    // the wxWidgets framework and start the application loop.
-    wxApp::SetInstance( new FenstApp());
-    wxEntryStart( argc, argv);
-    int exitCode = wxTheApp->OnRun();
-    wxEntryCleanup();
-    return exitCode;
+    ( void)argc;
+    char *fakeArgv[] = { argv[0], nullptr };
+    int   fakeArgc   = 1;
+    return wxEntry( fakeArgc, fakeArgv);
 }
 
 } // namespace xeom::fenst

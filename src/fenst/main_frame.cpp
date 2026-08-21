@@ -35,9 +35,27 @@ FenstMainFrame::FenstMainFrame( const wxString &title)
     CreateStatusBar();
     SetStatusText( "Welcome to Xeom Fenst GUI!");
 
-    // Basic central panel
-    wxPanel *panel = new wxPanel( this, wxID_ANY);
-    wxStaticText *text = new wxStaticText( panel, wxID_ANY, "Xeom Framework GUI initialized successfully.", wxPoint( 20, 20));
+    // Create Toolbar
+    wxToolBar *toolBar = CreateToolBar( wxTB_FLAT | wxTB_HORIZONTAL);
+    toolBar->AddTool( ID_Hello, "Greeting", wxArtProvider::GetBitmap( wxART_INFORMATION, wxART_TOOLBAR), "Show Greeting");
+    toolBar->AddSeparator();
+    toolBar->AddTool( wxID_ABOUT, "About", wxArtProvider::GetBitmap( wxART_HELP, wxART_TOOLBAR), "About Xeom");
+    toolBar->AddTool( wxID_EXIT, "Exit", wxArtProvider::GetBitmap( wxART_QUIT, wxART_TOOLBAR), "Quit Application");
+    toolBar->Realize();
+
+    // Create the main splitter window
+    m_splitter = new wxSplitterWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_3D | wxSP_LIVE_UPDATE);
+    m_splitter->SetMinimumPaneSize( 150);
+
+    // Left Pane: File Explorer
+    m_dirCtrl = new wxGenericDirCtrl( m_splitter, wxID_ANY, wxGetCwd(), wxDefaultPosition, wxDefaultSize, wxDIRCTRL_3D_INTERNAL | wxSUNKEN_BORDER);
+
+    // Right Pane: Content Workspace
+    m_contentPane = new wxPanel( m_splitter, wxID_ANY);
+    wxStaticText *text = new wxStaticText( m_contentPane, wxID_ANY, "Xeom Framework GUI initialized successfully.\nSelect an operation from the left to begin.", wxPoint( 20, 20));
+
+    // Split the window
+    m_splitter->SplitVertically( m_dirCtrl, m_contentPane, 250);
 }
 
 void FenstMainFrame::OnExit( wxCommandEvent &WXUNUSED( event))
