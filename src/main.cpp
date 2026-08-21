@@ -1,6 +1,7 @@
 // main.cpp -------------------------------------------------------------------------------------------------------
 #include "cove/xeom.h"
 #include "cove/jeeves.h"
+#include "fenst/fenst.h"
 
 #include <cstdlib>
 
@@ -110,6 +111,7 @@ int main( int argc, char *argv[]) noexcept
         size_t   iters = 10;
         bool     run_cpu = true;
         bool     run_gpu_flag = true;
+        bool     run_gui_flag = false;
         uint32_t szThreads = xeom::heist::Atelier::DefaultThreadCount();
 
         for ( int i = 1; i < argc; ++i) {
@@ -132,15 +134,23 @@ int main( int argc, char *argv[]) noexcept
                 run_gpu_flag = false;
             } else if ( arg == "--gpu-only") {
                 run_cpu = false;
+            } else if ( arg == "--gui") {
+                run_gui_flag = true;
             } else if ( arg == "--help" || arg == "-h") {
-                xeom::Logger::info( "Usage: xeom [--test [filter]] [--threads <N>] [--size <N>] [--iter <N>] [--cpu-only] [--gpu-only]");
+                xeom::Logger::info( "Usage: xeom [--test [filter]] [--threads <N>] [--size <N>] [--iter <N>] [--cpu-only] [--gpu-only] [--gui]");
                 xeom::Logger::info( "  --threads <N>  Worker threads (0=immediate, 1=main-only, default=hardware_concurrency)");
+                xeom::Logger::info( "  --gui          Launch the fenst GUI application");
                 return 0;
             }
         }
 
         xeom::heist::Atelier::Boot( szThreads);
         xeom::Logger::info( "  Atelier             : {} threads", szThreads);
+
+        if ( run_gui_flag) {
+            xeom::Logger::info( "Launching fenst GUI...");
+            return xeom::fenst::run_gui( argc, argv);
+        }
 
         print_diagnostics( xeom::get_compiler_info());
         if ( run_cpu) {

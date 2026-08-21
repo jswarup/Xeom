@@ -19,7 +19,7 @@ JEEVES_TEST( "heist::ChoreTree: DAG execution ordering")
     auto d = Chore::NewDoc( "D", []( IWorker * ) { traceIdx += 8; });
 
     // ChoreTree DAG: (a < b) | (c < d)
-    auto choreTree = ( a < b) | ( c < d) |( []( IWorker * ) { traceIdx += 10; });
+    auto choreTree = ( a < b) | ( c < d) | Chore::New( []( IWorker * ) { traceIdx += 10; });
 
     Atelier::Reset( 4);
     auto &atelier = Atelier::Instance();

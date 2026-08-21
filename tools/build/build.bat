@@ -103,7 +103,7 @@ cd /d "%TOOLS_BUILD_DIR%"
 
 echo.
 echo [INFO] Configuring CMake with Preset '%PRESET%'...
-cmake --preset %PRESET%
+cmake --preset %PRESET% -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 if errorlevel 1 (
     cd /d "%PROJ_DIR%"
     echo [ERROR] CMake configuration failed!

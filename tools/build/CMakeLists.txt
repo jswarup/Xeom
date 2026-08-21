@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-
+include(FetchContent)
 # Resolve Root Project Directory
 get_filename_component(XEOM_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 
@@ -147,10 +147,32 @@ else()
 endif()
 
 # -----------------------------------------------------------------------------
+# Fetch wxWidgets GUI Framework
+# -----------------------------------------------------------------------------
+set(wxBUILD_SAMPLES OFF CACHE BOOL "Disable wxWidgets samples" FORCE)
+set(wxBUILD_TESTS OFF CACHE BOOL "Disable wxWidgets tests" FORCE)
+set(wxBUILD_SHARED OFF CACHE BOOL "Build wxWidgets as static libraries" FORCE)
+set(CMAKE_POLICY_VERSION_MINIMUM 2.8 CACHE STRING "Allow old policies for wxWidgets" FORCE)
+
+FetchContent_Declare(
+    wxWidgets
+    GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+    GIT_TAG v3.2.5
+    PATCH_COMMAND powershell -Command "(Get-Content CMakeLists.txt) -replace 'VERSION 3.0', 'VERSION 3.5...3.25' | Set-Content CMakeLists.txt"
+)
+FetchContent_MakeAvailable(wxWidgets)
+
+# -----------------------------------------------------------------------------
 # Executable: xeom
 # -----------------------------------------------------------------------------
-add_executable(xeom "${XEOM_ROOT}/src/main.cpp" ${XEOM_JEEVES_TEST_SOURCES})
-target_link_libraries(xeom PRIVATE xeom_core)
+set(FENST_SOURCES
+    "${XEOM_ROOT}/src/fenst/fenst.cpp"
+    "${XEOM_ROOT}/src/fenst/app.cpp"
+    "${XEOM_ROOT}/src/fenst/main_frame.cpp"
+)
+
+add_executable(xeom "${XEOM_ROOT}/src/main.cpp" ${XEOM_JEEVES_TEST_SOURCES} ${FENST_SOURCES})
+target_link_libraries(xeom PRIVATE xeom_core wx::core wx::base)
 xeom_set_compile_options(xeom)
 if (XEOM_TESTS)
     target_compile_definitions(xeom PRIVATE XEOM_TESTS_ENABLED)
