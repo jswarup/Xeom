@@ -106,10 +106,11 @@ int main( int argc, char *argv[]) noexcept
         xeom::Logger::success( "  clc++2021 GPU Computing on Intel Iris Xe       ");
         xeom::Logger::success( "=================================================");
 
-        size_t vec_sz = 1'000'000;
-        size_t iters = 10;
-        bool   run_cpu = true;
-        bool   run_gpu_flag = true;
+        size_t   vec_sz = 1'000'000;
+        size_t   iters = 10;
+        bool     run_cpu = true;
+        bool     run_gpu_flag = true;
+        uint32_t szThreads = xeom::heist::Atelier::DefaultThreadCount();
 
         for ( int i = 1; i < argc; ++i) {
             const std::string_view arg = argv[i];
@@ -121,6 +122,8 @@ int main( int argc, char *argv[]) noexcept
                 xeom::Logger::error( "Xeom was built with XEOM_TESTS=OFF; no tests are linked in.");
                 return 1;
 #endif
+            } else if ( arg == "--threads" && i + 1 < argc) {
+                szThreads = static_cast< uint32_t>( std::strtoul( argv[++i], nullptr, 10));
             } else if ( arg == "--size" && i + 1 < argc) {
                 vec_sz = static_cast< size_t>( std::strtoll( argv[++i], nullptr, 10));
             } else if ( arg == "--iter" && i + 1 < argc) {
@@ -130,10 +133,14 @@ int main( int argc, char *argv[]) noexcept
             } else if ( arg == "--gpu-only") {
                 run_cpu = false;
             } else if ( arg == "--help" || arg == "-h") {
-                xeom::Logger::info( "Usage: xeom [--test [filter]] [--size <N>] [--iter <N>] [--cpu-only] [--gpu-only]");
+                xeom::Logger::info( "Usage: xeom [--test [filter]] [--threads <N>] [--size <N>] [--iter <N>] [--cpu-only] [--gpu-only]");
+                xeom::Logger::info( "  --threads <N>  Worker threads (0=immediate, 1=main-only, default=hardware_concurrency)");
                 return 0;
             }
         }
+
+        xeom::heist::Atelier::Boot( szThreads);
+        xeom::Logger::info( "  Atelier             : {} threads", szThreads);
 
         print_diagnostics( xeom::get_compiler_info());
         if ( run_cpu) {

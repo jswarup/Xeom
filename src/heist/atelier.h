@@ -8,56 +8,110 @@
 #include "silo/stash.h"
 #include "stalks/atm.h"
 #include "stalks/work.h"
-#include <iostream>
 #include <thread>
 #include <vector>
+#include <new>
 
 //-----------------------------------------------------------------------------------------------------------------
 
 namespace xeom::heist {
 
 //-----------------------------------------------------------------------------------------------------------------
-// Atelier — central work-stealing job pool, DAG dependency resolver, and multi-threaded orchestrator.
+// Atelier — singleton work-stealing job pool, DAG dependency resolver, and multi-threaded orchestrator.
+//
+//   szThreads == 0  → Immediate mode: PostJob executes inline, DoLaunch is a no-op.
+//   szThreads == 1  → Single-threaded: main thread runs as sole Maestro.
+//   szThreads >= 2  → Multi-threaded: N Maestros with work-stealing.
 
 class Atelier
 {
-public:
-    mutable stalks::Atm< uint32_t> m_SzSchedJob{0};
+    friend class Maestro;
 
-private:
     static constexpr uint32_t k_JobCapacity = 65536;
 
+    uint32_t                                 m_SzThreads{0};
+    mutable stalks::Atm< uint32_t>           m_SzSchedJob{0};
     silo::Buff< Maestro>                     m_Maestros{};
     silo::Buff< stalks::Atm< uint16_t>>      m_SzPreds{};
     silo::Buff< uint16_t>                    m_SuccIds{};
     stalks::Spinlock                         m_FreeJobLock{};
     silo::Stash< uint16_t>                   m_FreeJobStash{};
     silo::Buff< stalks::WorkPtr>             m_JobBuff{};
-    silo::Buff< const char *>                m_JobDocBuff{};
     uint16_t                                 m_Terminal{0};
 
-public:
+    //-----------------------------------------------------------------------------------------------------------------
+
     constexpr Atelier( void) noexcept = default;
 
-    explicit Atelier( uint32_t szMaestro)
-        : m_SzSchedJob( 0),
-          m_Maestros( szMaestro, []( uint32_t i ) { return Maestro::New( i); }),
+    explicit Atelier( uint32_t szThreads)
+        : m_SzThreads( szThreads),
+          m_SzSchedJob( 0),
+          m_Maestros( szThreads, []( uint32_t i ) { return Maestro::New( i); }),
           m_SzPreds( k_JobCapacity, []( uint32_t ) { return stalks::Atm< uint16_t>( 0); }),
           m_SuccIds( k_JobCapacity, static_cast< uint16_t>( 0)),
           m_FreeJobStash( k_JobCapacity, 0, static_cast< uint16_t>( 0)),
           m_JobBuff( k_JobCapacity, stalks::WorkPtr::Null()),
-          m_JobDocBuff( k_JobCapacity, "Free"),
           m_Terminal( 0)
     {
         m_FreeJobStash.DoIndexSetup();
-        m_Terminal = ConstructJob( 0, 0, stalks::WorkPtr::Dummy(), "Terminal");
+        m_Terminal = ConstructJob( 0, 0, stalks::WorkPtr::Dummy());
         m_Maestros[0].SetCurSuccId( m_Terminal);
     }
 
-    static Atelier New( uint32_t szMaestro)
+public:
+
+    //-----------------------------------------------------------------------------------------------------------------
+    // Singleton
+
+    static Atelier &Instance( void) noexcept
     {
-        return Atelier( szMaestro);
+        alignas( Atelier) static uint8_t s_Storage[sizeof( Atelier)]{};
+        static Atelier *s_Ptr = new ( s_Storage) Atelier();
+        return *s_Ptr;
     }
+
+    static void Boot( uint32_t szThreads)
+    {
+        if ( szThreads == 0 ) {
+            return;
+        }
+        auto &inst = Instance();
+        inst.~Atelier();
+        new ( &inst) Atelier( szThreads);
+    }
+
+    static void Reset( uint32_t szThreads)
+    {
+        auto &inst = Instance();
+        inst.~Atelier();
+        if ( szThreads == 0 ) {
+            new ( &inst) Atelier();
+        } else {
+            new ( &inst) Atelier( szThreads);
+        }
+    }
+
+    static uint32_t DefaultThreadCount( void) noexcept
+    {
+        uint32_t hw = std::thread::hardware_concurrency();
+        return ( hw > 0) ? hw : 1;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    // Mode queries
+
+    bool IsImmediate( void) const noexcept
+    {
+        return m_SzThreads == 0;
+    }
+
+    uint32_t SzThreads( void) const noexcept
+    {
+        return m_SzThreads;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    // Accessors
 
     Maestro *MainMaestro( void) noexcept
     {
@@ -86,10 +140,8 @@ public:
         return &m_SzPreds[jobId];
     }
 
-    const char *FreeDocStr( void) const noexcept
-    {
-        return "Free";
-    }
+    //-----------------------------------------------------------------------------------------------------------------
+    // Job lifecycle
 
     uint16_t AllocJob( uint32_t maestroIdx)
     {
@@ -111,7 +163,6 @@ public:
 
     bool FreeJob( uint32_t maestroIdx, uint16_t jobId)
     {
-        m_JobDocBuff.SetAt( jobId, FreeDocStr());
         Maestro &maestro = m_Maestros[maestroIdx];
         maestro.FlushTempQueue();
         auto jobCacheStk = maestro.JobCacheStk();
@@ -130,19 +181,21 @@ public:
         SzPred( succId)->Add( 1);
     }
 
-    uint16_t ConstructJob( uint32_t maestroIdx, uint16_t succId, stalks::WorkPtr job, const char *docStr)
+    uint16_t ConstructJob( uint32_t maestroIdx, uint16_t succId, stalks::WorkPtr job)
     {
         uint16_t jobId = AllocJob( maestroIdx);
         if ( jobId == 0 ) {
             return jobId;
         }
         m_JobBuff.SetAt( jobId, job);
-        m_JobDocBuff.SetAt( jobId, docStr);
         if ( succId != 0 ) {
             SetSucc( jobId, succId);
         }
         return jobId;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    // Work-stealing
 
     uint16_t GrabJob( uint32_t idx, uint32_t &stealSeed)
     {
@@ -161,6 +214,9 @@ public:
         }
         return 0;
     }
+
+    //-----------------------------------------------------------------------------------------------------------------
+    // Execution
 
     void ExecuteLoop( uint32_t maestroIdx)
     {
@@ -196,7 +252,7 @@ public:
             }
 
             jobId = maestro.PopJob();
-            if ( jobId == 0 ) {
+            if ( jobId == 0 && m_SzThreads >= 2 ) {
                 jobId = GrabJob( maestroIdx, stealSeed);
             }
             if ( jobId == 0 ) {
@@ -210,6 +266,15 @@ public:
 
     void DoLaunch( void)
     {
+        if ( m_SzThreads == 0 ) {
+            return;
+        }
+
+        if ( m_SzThreads == 1 ) {
+            ExecuteLoop( 0);
+            return;
+        }
+
         const uint32_t sz = m_Maestros.Size();
         std::vector< std::jthread> threads;
         threads.reserve( sz > 0 ? sz - 1 : 0);
@@ -231,12 +296,12 @@ public:
 //-----------------------------------------------------------------------------------------------------------------
 // Inlined Maestro implementations requiring Atelier
 
-inline uint16_t Maestro::ConstructJob( uint16_t succId, stalks::WorkPtr job, const char *docStr)
+inline uint16_t Maestro::ConstructJob( uint16_t succId, stalks::WorkPtr job)
 {
-    return const_cast< Atelier *>( m_Atelier)->ConstructJob( m_Index, succId, job, docStr);
+    return m_Atelier->ConstructJob( m_Index, succId, job);
 }
 
-inline uint16_t Maestro::ConstructEnqueArr( uint16_t succId, silo::Buff< uint16_t> buff, const char *docStr)
+inline uint16_t Maestro::ConstructEnqueArr( uint16_t succId, silo::Buff< uint16_t> buff)
 {
     return ConstructJob(
         succId,
@@ -247,8 +312,7 @@ inline uint16_t Maestro::ConstructEnqueArr( uint16_t succId, silo::Buff< uint16_
                     maestro->EnqueueJob( jobId);
                 }
             }
-        }),
-        docStr
+        })
     );
 }
 
@@ -257,7 +321,7 @@ inline void Maestro::FlushTempQueue( void)
     auto arr = m_TempQueue.StkView().ArrView();
     for ( uint16_t jobId : arr ) {
         if ( jobId != 0 ) {
-            const_cast< Atelier *>( m_Atelier)->m_SzSchedJob.Add( 1);
+            m_Atelier->m_SzSchedJob.Add( 1);
             EnqueRunJob( jobId);
         }
     }
@@ -266,8 +330,12 @@ inline void Maestro::FlushTempQueue( void)
 
 inline void Maestro::PostJob( stalks::WorkPtr job)
 {
+    if ( m_Atelier && m_Atelier->IsImmediate() ) {
+        job.DoWork( this);
+        return;
+    }
     uint16_t succId = CurSuccId();
-    uint16_t jobId = ConstructJob( succId, job, "PostJob");
+    uint16_t jobId = ConstructJob( succId, job);
     EnqueueJob( jobId);
 }
 
@@ -279,7 +347,7 @@ inline void Maestro::PostChoreTree( const TChoreNode &node)
     uint16_t succId = CurSuccId();
     uint16_t tail = 0;
     while ( tails.Pop( tail) ) {
-        const_cast< Atelier *>( m_Atelier)->SetSucc( tail, succId);
+        m_Atelier->SetSucc( tail, succId);
     }
     EnqueueJob( head);
 }
@@ -287,15 +355,15 @@ inline void Maestro::PostChoreTree( const TChoreNode &node)
 //-----------------------------------------------------------------------------------------------------------------
 // Chore & BinNode Post implementations
 
-inline uint16_t Chore::Post( const Maestro *maestro, silo::Stash< uint16_t> &tails) const
+inline uint16_t Chore::Post( Maestro *maestro, silo::Stash< uint16_t> &tails) const
 {
-    uint16_t jobId = const_cast< Maestro *>( maestro)->ConstructJob( 0, stalks::WorkPtr::FromFn( m_Closure), m_DocStr);
+    uint16_t jobId = maestro->ConstructJob( 0, stalks::WorkPtr::FromFn( m_Closure));
     tails.Push( jobId);
     return jobId;
 }
 
 template < typename L, typename R, typename Op>
-inline uint16_t PostChoreNode( const stalks::BinNode< L, R, Op> &node, const Maestro *maestro, silo::Stash< uint16_t> &tails)
+inline uint16_t PostChoreNode( const stalks::BinNode< L, R, Op> &node, Maestro *maestro, silo::Stash< uint16_t> &tails)
 {
     if ( node.m_Op == stalks::BinOp::Bor ) {
         silo::Stash< uint16_t> leftTails = silo::Stash< uint16_t>::New( 64, 0, static_cast< uint16_t>( 0));
@@ -314,7 +382,7 @@ inline uint16_t PostChoreNode( const stalks::BinNode< L, R, Op> &node, const Mae
         silo::Buff< uint16_t> heads( 2, static_cast< uint16_t>( 0));
         heads[0] = headL;
         heads[1] = headR;
-        return const_cast< Maestro *>( maestro)->ConstructEnqueArr( 0, std::move( heads), "EnqPar");
+        return maestro->ConstructEnqueArr( 0, std::move( heads));
     } else if ( node.m_Op == stalks::BinOp::Less ) {
         silo::Stash< uint16_t> leftTails = silo::Stash< uint16_t>::New( 64, 0, static_cast< uint16_t>( 0));
         uint16_t headL = PostChoreNode( node.m_Left, maestro, leftTails);
@@ -322,32 +390,11 @@ inline uint16_t PostChoreNode( const stalks::BinNode< L, R, Op> &node, const Mae
 
         uint16_t leftTail = 0;
         while ( leftTails.Pop( leftTail) ) {
-            const_cast< Atelier *>( maestro->AtelierRef())->SetSucc( leftTail, headR);
+            maestro->AtelierRef()->SetSucc( leftTail, headR);
         }
         return headL;
     }
     return 0;
 }
-
-//-----------------------------------------------------------------------------------------------------------------
-// JobInfo — diagnostic representation of a registered job.
-
-struct JobInfo
-{
-    uint16_t    m_JobId{0};
-    uint16_t    m_SuccId{0};
-    uint16_t    m_SzPred{0};
-    const char *m_DocStr{""};
-
-    static JobInfo New( const Atelier *atelier, uint16_t jobId)
-    {
-        return {
-            .m_JobId  = jobId,
-            .m_SuccId = atelier->SuccId( jobId),
-            .m_SzPred = const_cast< Atelier *>( atelier)->SzPred( jobId)->Load(),
-            .m_DocStr = ""
-        };
-    }
-};
 
 } // namespace xeom::heist

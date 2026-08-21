@@ -19,12 +19,13 @@ JEEVES_TEST( "heist::ChoreTree: DAG execution ordering")
     auto d = Chore::NewDoc( "D", []( IWorker * ) { traceIdx += 8; });
 
     // ChoreTree DAG: (a < b) | (c < d)
-    auto choreTree = ( a < b) | ( c < d);
+    auto choreTree = ( a < b) | ( c < d) |( []( IWorker * ) { traceIdx += 10; });
 
-    Atelier atelier = Atelier::New( 4);
+    Atelier::Reset( 4);
+    auto &atelier = Atelier::Instance();
     Maestro *mainMaestro = atelier.MainMaestro();
     mainMaestro->PostChoreTree( choreTree);
     atelier.DoLaunch();
 
-    JEEVES_CHECK_MSG( traceIdx == 15, "ChoreTree executed all 4 jobs in DAG");
+    JEEVES_CHECK_MSG( traceIdx == 25, "ChoreTree executed all 5 jobs in DAG");
 }

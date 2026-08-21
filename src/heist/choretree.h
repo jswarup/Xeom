@@ -47,25 +47,25 @@ public:
         return Chore( docStr, f);
     }
 
-    uint16_t Post( const Maestro *maestro, silo::Stash< uint16_t> &tails) const;
+    uint16_t Post( Maestro *maestro, silo::Stash< uint16_t> &tails) const;
 };
 
 //-----------------------------------------------------------------------------------------------------------------
 // PostChoreNode declaration for Chore and recursive BinNode
 
-inline uint16_t PostChoreNode( const Chore &chore, const Maestro *maestro, silo::Stash< uint16_t> &tails)
+inline uint16_t PostChoreNode( const Chore &chore, Maestro *maestro, silo::Stash< uint16_t> &tails)
 {
     return chore.Post( maestro, tails);
 }
 
 template < typename L, typename R, typename Op>
-uint16_t PostChoreNode( const stalks::BinNode< L, R, Op> &node, const Maestro *maestro, silo::Stash< uint16_t> &tails);
+uint16_t PostChoreNode( const stalks::BinNode< L, R, Op> &node, Maestro *maestro, silo::Stash< uint16_t> &tails);
 
 //-----------------------------------------------------------------------------------------------------------------
 // Concept: CChoreNode — validates that a node can be posted into a Maestro/Atelier execution graph.
 
 template < typename T>
-concept CChoreNode = requires( const T &node, const Maestro *maestro, silo::Stash< uint16_t> &tails) {
+concept CChoreNode = requires( const T &node, Maestro *maestro, silo::Stash< uint16_t> &tails) {
     { PostChoreNode( node, maestro, tails) } -> std::convertible_to< uint16_t>;
 };
 

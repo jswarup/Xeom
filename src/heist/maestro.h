@@ -6,7 +6,6 @@
 #include "silo/stash.h"
 #include "stalks/atm.h"
 #include "stalks/work.h"
-#include <cassert>
 
 //-----------------------------------------------------------------------------------------------------------------
 
@@ -20,11 +19,11 @@ class Atelier;
 class Maestro : public stalks::IWorker
 {
 public:
-    uint32_t m_SzProcessed{0};
+    uint32_t                   m_SzProcessed{0};
 
 private:
     uint32_t                   m_Index{0};
-    const Atelier             *m_Atelier{nullptr};
+    Atelier                   *m_Atelier{nullptr};
     silo::Stash< uint16_t>     m_JobCache{};
     silo::Stash< uint16_t>     m_RunQueue{};
     stalks::Spinlock           m_RunQLock{};
@@ -48,9 +47,14 @@ public:
         return Maestro( maestroInd);
     }
 
-    void SetAtelier( const Atelier *atelier) noexcept
+    void SetAtelier( Atelier *atelier) noexcept
     {
         m_Atelier = atelier;
+    }
+
+    Atelier *AtelierRef( void) noexcept
+    {
+        return m_Atelier;
     }
 
     const Atelier *AtelierRef( void) const noexcept
@@ -65,25 +69,17 @@ public:
 
     static Maestro *FromWorker( stalks::IWorker *worker) noexcept
     {
-        if ( !worker ) {
-            return nullptr;
-        }
-        return const_cast< Maestro *>( static_cast< const Maestro *>( worker->AsRawWorker()));
+        return static_cast< Maestro *>( worker);
     }
 
-    const void *AsRawWorker( void) const noexcept override
-    {
-        return static_cast< const void *>( this);
-    }
-
-    uint16_t ConstructJob( uint16_t succId, stalks::WorkPtr job, const char *docStr);
+    uint16_t ConstructJob( uint16_t succId, stalks::WorkPtr job);
 
     void EnqueueJob( uint16_t jobId)
     {
         m_TempQueue.Push( jobId);
     }
 
-    uint16_t ConstructEnqueArr( uint16_t succId, silo::Buff< uint16_t> buff, const char *docStr);
+    uint16_t ConstructEnqueArr( uint16_t succId, silo::Buff< uint16_t> buff);
 
     silo::Stk< uint16_t> JobCacheStk( void) const noexcept
     {

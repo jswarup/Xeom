@@ -9,7 +9,8 @@ JEEVES_TEST( "heist::Maestro: index and successor id bookkeeping")
     using namespace xeom::heist;
     using namespace xeom::silo;
 
-    Atelier atelier = Atelier::New( 4);
+    Atelier::Reset( 4);
+    auto &atelier = Atelier::Instance();
     {
         auto maestros = atelier.Maestros();
         Maestro &m2 = maestros[2];

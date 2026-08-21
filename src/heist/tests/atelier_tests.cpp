@@ -13,7 +13,8 @@ JEEVES_TEST( "heist::Atelier: DoLaunch executes master & child jobs")
     static std::atomic< int> executedCount{0};
     executedCount = 0;
 
-    Atelier atelier = Atelier::New( 4);
+    Atelier::Reset( 4);
+    auto &atelier = Atelier::Instance();
     Maestro *mainMaestro = atelier.MainMaestro();
 
     uint16_t jobId = mainMaestro->ConstructJob(
@@ -25,12 +26,10 @@ JEEVES_TEST( "heist::Atelier: DoLaunch executes master & child jobs")
                 m->CurSuccId(),
                 WorkPtr::FromLambda( []( IWorker * ) {
                     executedCount += 10;
-                }),
-                "Child1"
+                })
             );
             m->EnqueueJob( child1);
-        }),
-        "TrialJob"
+        })
     );
     mainMaestro->EnqueueJob( jobId);
     atelier.DoLaunch();
